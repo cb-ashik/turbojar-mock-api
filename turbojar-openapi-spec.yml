@@ -1,0 +1,324 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: 'API for chargebee turbojar mock'
+  description: 'Consists of all end points for Turbojar integration settings page'
+servers:
+  - url: 'http://localhost:7777'
+paths:
+  /third_party/ui/turbojar:
+    get:
+      operationId: getConfig
+      tags: ['Turbojar']
+      summary: Fetch Turbojar data based on the current configuration
+      responses:
+        '200':
+          description: Returns Turbojar REST object data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Turbojar'
+  /third_party/ui/turbojar/connect:
+    post:
+      operationId: connectAccount
+      tags: ['Turbojar']
+      summary: Post turbojar connect data.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/AuthData'
+      responses:
+        '200':
+          description: Returns turbojar data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Turbojar'
+        '400':
+          description: Returns CB error response
+  /third_party/ui/turbojar/stage:
+    post:
+      operationId: proceedToNextStage
+      tags: ['Turbojar']
+      summary: Proceed through turbojar steps
+      requestBody:
+        description: Send csrf token alone
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsrfObj'
+      responses:
+        '200':
+          description: Returns turbojar data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Turbojar'
+  /site_preferences/{pref}/add_publish_rule:
+    post:
+      operationId: updatePrefxAndPublish
+      tags: ['Turbojar']
+      summary: Add Turbojar rule and publish it
+      parameters:
+        - in: path
+          name: pref
+          description: Turbojar settings preference name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostData'
+      responses:
+        '200':
+          description: 200 OK
+        '400':
+          description: Returns CB error response
+  /site_preferences/{pref}/add_rule:
+    post:
+      operationId: updatePrefxOnly
+      tags: ['Turbojar']
+      summary: Add Turbojar rule and publish it
+      parameters:
+        - in: path
+          name: pref
+          description: Turbojar settings preference name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostData'
+      responses:
+        '200':
+          description: 200 OK
+        '400':
+          description: Returns CB error response
+  /third_party/ui/turbojar/publish:
+    post:
+      operationId: publishPrefx
+      tags: ['Turbojar']
+      summary: publish Turbojar data
+      requestBody:
+        description: Send csrf token alone
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsrfObj'
+      responses:
+        '200':
+          description: Returns success ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Any'
+  /third_party/ui/turbojar/discard:
+    post:
+      operationId: discardPrefx
+      tags: ['Turbojar']
+      summary: discard Turbojar data
+      requestBody:
+        description: Send csrf token alone
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsrfObj'
+      responses:
+        '200':
+          description: Returns success ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Any'
+components:
+  schemas:
+    Any: {}
+    PostData:
+      type: object
+      required:
+        - value
+        - level
+      properties:
+        value:
+          type: string
+        level:
+          type: string
+    AuthData:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+        step:
+          $ref: '#/components/schemas/TurbojarSteps'
+    Turbojar:
+      type: object
+      required:
+        - integrationName
+        - steps
+        - thirdPartyTaxType
+        - step
+        - auth
+        - shippingAddressValidationEnabled
+        - allowPartiallyValidShippingAddress
+        - syncInvCn
+        - allowProceed
+        - featureVal
+        - isFeatureAllowed
+        - isDraft
+        - countriesAvailable
+      properties:
+        integrationName:
+          type: string
+          description: namespace name
+        steps:
+          type: array
+          items:
+            type: string
+        thirdPartyTaxType:
+          type: string
+        step:
+          type: string
+        userName:
+          type: string
+          description: masked value
+        auth:
+          type: object
+          properties:
+            isDraft:
+              type: boolean
+            value:
+              type: boolean
+            isOverridable:
+              type: boolean
+        totalNexusConfigured:
+          type: integer
+        useNexus:
+          $ref: '#/components/schemas/BooleanData'
+        shippingAddressValidationEnabled:
+          $ref: '#/components/schemas/BooleanData'
+        allowPartiallyValidShippingAddress:
+          $ref: '#/components/schemas/BooleanData'
+        syncInvCn:
+          type: object
+          properties:
+            isDraft:
+              type: boolean
+            value:
+              type: string
+              enum:
+                - DONT_SYNC
+                - SYNC_ALL
+                - SYNC_ONLY_PAID
+            isOverridable:
+              type: boolean
+        handleDowntime:
+          $ref: '#/components/schemas/ExceptionData'
+        handleInvalidCredentials:
+          $ref: '#/components/schemas/ExceptionData'
+        handleInvalidAddress:
+          $ref: '#/components/schemas/ExceptionData'
+        syncDetails:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - PROCESSING
+                - SUCCESS
+                - FAILED
+            lastValidatedAt:
+              type: string
+            countriesSelected:
+              type: array
+              items:
+                type: string
+            alerts:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  handle:
+                    type: string
+                  entity:
+                    type: string
+                  alertType:
+                    type: string
+                    enum:
+                      - ERROR
+                      - WARNING
+        allowProceed:
+          type: string
+
+        isDraft:
+          type: boolean
+        status:
+          type: boolean
+          description: false is set to display almost done card in UI
+        isTaxjarPlus:
+          type: boolean
+        countriesAvailable:
+          type: object
+          properties:
+            countries:
+              type: array
+              items:
+                type: string
+            eucountries:
+              type: array
+              items:
+                type: string
+        featureVal:
+          type: integer
+        isFeatureAllowed:
+          type: boolean
+    BooleanData:
+      type: object
+      required:
+        - value
+      properties:
+        isDraft:
+          type: boolean
+        value:
+          type: boolean
+        isOverridable:
+          type: boolean
+    ExceptionData:
+      type: object
+      properties:
+        isDraft:
+          type: boolean
+        value:
+          type: string
+          enum:
+            - GENERATE_INVOICES_WITHOUT_TAXES
+            - CANCEL_SUBSCRIPTION
+        isOverridable:
+          type: boolean
+    TurbojarSteps:
+      type: string
+      enum:
+        - INITIALIZATION
+        - SYNC_RULES
+        - COMPLETED
+    StartValidationBody:
+      type: object
+      properties:
+        countries:
+          type: array
+          items:
+            type: string
+    CsrfObj:
+      type: object
+      properties:
+        csrfToken:
+          type: string
